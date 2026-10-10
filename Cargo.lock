@@ -5295,6 +5295,7 @@ dependencies = [
  "async-trait",
  "axum",
  "block2",
+ "cc",
  "chrono",
  "dashmap",
  "dirs",

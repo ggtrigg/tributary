@@ -1,4 +1,35 @@
 fn main() {
+    // Compile GLib resources (icons) into a .gresource binary file.
+    // This file will be included in the binary using gio::resources_register_include! macro.
+    let manifest_dir = std::path::PathBuf::from(
+        std::env::var_os("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is not set"),
+    );
+    let out_dir =
+        std::path::PathBuf::from(std::env::var_os("OUT_DIR").expect("OUT_DIR is not set"));
+
+    // Generate binary .gresource file from the resource XML
+    let resource_xml = manifest_dir.join("data/icons.gresource.xml");
+    let gresource_file = out_dir.join("icons.gresource");
+
+    std::process::Command::new("glib-compile-resources")
+        .arg(&resource_xml)
+        .arg(format!(
+            "--sourcedir={}",
+            manifest_dir.join("data/icons").display()
+        ))
+        .arg(format!("--target={}", gresource_file.display()))
+        .output()
+        .expect("Failed to compile resource binary");
+
+    // Tell Cargo to re-run if the resource files change
+    println!("cargo:rerun-if-changed={}", resource_xml.display());
+    println!("cargo:rerun-if-changed=build.rs");
+    // Also watch the icon files
+    for entry in std::fs::read_dir(manifest_dir.join("data/icons")).unwrap() {
+        let entry = entry.unwrap();
+        println!("cargo:rerun-if-changed={}", entry.path().display());
+    }
+
     // Generate the Windows icon and version resource, then attach it
     // specifically to the application binary. `winresource::compile()` emits
     // `rustc-link-lib`, which Cargo routes only to this package's library now
@@ -7,9 +38,6 @@ fn main() {
     // linker directive required by a mixed library/binary package.
     #[cfg(target_os = "windows")]
     {
-        let manifest_dir = std::path::PathBuf::from(
-            std::env::var_os("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is not set"),
-        );
         let output_dir =
             std::path::PathBuf::from(std::env::var_os("OUT_DIR").expect("OUT_DIR is not set"));
         let resource_file = output_dir.join("tributary-resource.rc");

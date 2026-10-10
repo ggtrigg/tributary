@@ -97,10 +97,6 @@ pub fn show_play_button_state(button: &gtk::Button, playing: bool) {
     button.update_property(&[gtk::accessible::Property::Label(&name)]);
 }
 
-/// The EQ button's icon, installed with the app's other icons: GNOME's icon
-/// theme has no equalizer icon.
-pub const EQUALIZER_ICON: &str = "io.github.jm2.tributary-equalizer-symbolic";
-
 /// Show on the EQ button whether the equalizer is on by toggling it, the way
 /// Repeat and Shuffle show theirs, rather than with a style class a theme
 /// may restyle.
@@ -159,7 +155,7 @@ pub fn build_header_bar() -> HeaderBarWidgets {
     // alone on a click, so only `show_equalizer_state` changes it.
     let equalizer_title = rust_i18n::t!("equalizer.title");
     let btn_equalizer = gtk::ToggleButton::builder()
-        .icon_name(EQUALIZER_ICON)
+        .icon_name("io.github.jm2.tributary-equalizer-symbolic")
         .tooltip_text(equalizer_title.as_ref())
         .action_name("win.show-equalizer")
         .build();
@@ -483,7 +479,10 @@ pub mod widget_tests {
         );
         assert!(button.next_sibling().is_none(), "the last playback button");
         assert_eq!(button.action_name().as_deref(), Some("win.show-equalizer"));
-        assert_eq!(button.icon_name().as_deref(), Some(EQUALIZER_ICON));
+        assert_eq!(
+            button.icon_name().as_deref(),
+            Some("io.github.jm2.tributary-equalizer-symbolic")
+        );
         assert_eq!(button.tooltip_text().as_deref(), Some("Equalizer"));
         assert!(gtk::test_accessible_has_property(
             button,
@@ -500,7 +499,7 @@ pub mod widget_tests {
         let icons = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("data/icons");
         theme.set_search_path(&[icons.as_path()]);
         theme.set_theme_name(Some("hicolor"));
-        assert!(theme.has_icon(EQUALIZER_ICON));
+        assert!(theme.has_icon("io.github.jm2.tributary-equalizer-symbolic"));
     }
 }
 
