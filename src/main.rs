@@ -440,7 +440,7 @@ fn main() {
                 let icon_theme = gtk::IconTheme::for_display(&display);
                 // Also add the compiled resource path so the equalizer icon
                 // is found even when the binary is run outside the source tree.
-                icon_theme.add_resource_path("/io/github/jm2/tributary");
+                icon_theme.add_resource_path("/io/github/jm2/tributary/hicolor");
                 // Development: <repo>/target/release/tributary → <repo>/data/icons
                 // Also handles `-Run` mode where exe is in target/<profile>/.
                 if let Some(repo) = exe

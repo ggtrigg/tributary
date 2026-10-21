@@ -11,7 +11,7 @@ fn main() {
     let resource_xml = manifest_dir.join("data/icons.gresource.xml");
     let gresource_file = out_dir.join("icons.gresource");
 
-    std::process::Command::new("glib-compile-resources")
+    let output = std::process::Command::new("glib-compile-resources")
         .arg(&resource_xml)
         .arg(format!(
             "--sourcedir={}",
@@ -19,7 +19,12 @@ fn main() {
         ))
         .arg(format!("--target={}", gresource_file.display()))
         .output()
-        .expect("Failed to compile resource binary");
+        .expect("Failed to run glib-compile-resources");
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        panic!("glib-compile-resources failed: {stderr}");
+    }
 
     // Tell Cargo to re-run if the resource files change
     println!("cargo:rerun-if-changed={}", resource_xml.display());
