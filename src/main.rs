@@ -108,12 +108,6 @@ use tracing::{error, info};
 /// Reverse-DNS application identifier.
 const APP_ID: &str = "io.github.jm2.tributary";
 
-/// Register the compiled GLib resource (icons) so the equalizer icon
-/// is available regardless of installation location.
-fn register_icons_resource() {
-    gio::resources_register_include!("icons.gresource").expect("Failed to register icons resource");
-}
-
 /// Route an application-level quit request through the active window so its
 /// `close-request` handler can finish lifecycle-owned remote teardown first.
 /// With no window there is no such barrier to join, so quitting the
@@ -429,18 +423,14 @@ fn main() {
             return;
         };
 
-        // Register the compiled GLib resource (icons) so the equalizer icon
-        // is available regardless of installation location.
-        register_icons_resource();
-
-        // Register the app icon search path now that GTK has a display.
-        // This is kept for the main app icon and as a fallback for development.
-        if let Some(ref exe) = exe_path {
-            if let Some(display) = gtk::gdk::Display::default() {
-                let icon_theme = gtk::IconTheme::for_display(&display);
-                // Also add the compiled resource path so the equalizer icon
-                // is found even when the binary is run outside the source tree.
-                icon_theme.add_resource_path("/io/github/jm2/tributary/hicolor");
+        // Register icon locations now that GTK has a display. The embedded
+        // resource carries the app's own icons wherever the binary is
+        // installed; the search paths below find the rest in a source tree
+        // or a Windows/macOS bundle.
+        if let Some(display) = gtk::gdk::Display::default() {
+            let icon_theme = gtk::IconTheme::for_display(&display);
+            ui::icons::add_bundled_icons(&icon_theme);
+            if let Some(ref exe) = exe_path {
                 // Development: <repo>/target/release/tributary → <repo>/data/icons
                 // Also handles `-Run` mode where exe is in target/<profile>/.
                 if let Some(repo) = exe
